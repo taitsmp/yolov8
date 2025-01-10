@@ -56,7 +56,10 @@ class ClassificationValidator(BaseValidator):
         pf = '%22s' + '%11.3g' * len(self.metrics.keys)  # print format
         LOGGER.info(pf % ('all', self.metrics.top1, self.metrics.top5))
         if self.args.plots:
-            self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
+            # Create save_dir if it doesn't exist
+            if self.save_dir:
+                self.save_dir.mkdir(parents=True, exist_ok=True)
+                self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
 
 
 def val(cfg=DEFAULT_CFG, use_python=False):
@@ -68,7 +71,15 @@ def val(cfg=DEFAULT_CFG, use_python=False):
         from ultralytics import YOLO
         YOLO(model).val(**args)
     else:
-        validator = ClassificationValidator(args=args)
+        # Create save_dir from project and name if provided in cfg
+        save_dir = None
+        if hasattr(cfg, 'project') or hasattr(cfg, 'name'):
+            from pathlib import Path
+            project = getattr(cfg, 'project', 'runs/val')
+            name = getattr(cfg, 'name', 'exp')
+            save_dir = Path(project) / name
+        
+        validator = ClassificationValidator(args=args, save_dir=save_dir)
         validator(model=args['model'])
 
 

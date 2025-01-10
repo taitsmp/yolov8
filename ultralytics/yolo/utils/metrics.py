@@ -280,7 +280,13 @@ class ConfusionMatrix:
         ax.set_xlabel('True')
         ax.set_ylabel('Predicted')
         ax.set_title('Confusion Matrix')
-        fig.savefig(Path(save_dir) / 'confusion_matrix.png', dpi=250)
+        
+        # Only try to save if save_dir is provided and valid
+        if save_dir:
+            save_dir = Path(save_dir)
+            if not save_dir.exists():
+                save_dir.mkdir(parents=True, exist_ok=True)
+            fig.savefig(save_dir / 'confusion_matrix.png', dpi=250)
         plt.close(fig)
 
     def print(self):
@@ -755,7 +761,7 @@ class PoseMetrics(SegmentMetrics):
         speed (dict): Dictionary to store the time taken in different phases of inference.
 
     Methods:
-        process(tp_m, tp_b, conf, pred_cls, target_cls): Processes metrics over the given set of predictions.
+        process(tp_b, tp_p, conf, pred_cls, target_cls): Processes metrics over the given set of predictions.
         mean_results(): Returns the mean of the detection and segmentation metrics over all the classes.
         class_result(i): Returns the detection and segmentation metrics of class `i`.
         maps: Returns the mean Average Precision (mAP) scores for IoU thresholds ranging from 0.50 to 0.95.
